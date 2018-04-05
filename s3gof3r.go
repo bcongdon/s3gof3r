@@ -124,7 +124,23 @@ func (b *Bucket) GetReader(path string, c *Config) (r io.ReadCloser, h http.Head
 	if err != nil {
 		return nil, nil, err
 	}
-	return newGetter(*u, c, b)
+	return newGetter(*u, c, b, 0)
+}
+
+// GetOffsetReader is the same as GetReader, except that it allow beginning to read from an S3 object from
+// "offset" bytes from the beginning of the object.
+func (b *Bucket) GetOffsetReader(path string, c *Config, offset int64) (r io.ReadCloser, h http.Header, err error) {
+	if path == "" {
+		return nil, nil, errors.New("empty path requested")
+	}
+	if c == nil {
+		c = b.conf()
+	}
+	u, err := b.url(path, c)
+	if err != nil {
+		return nil, nil, err
+	}
+	return newGetter(*u, c, b, offset)
 }
 
 // PutWriter provides a writer to upload data as multipart upload requests.
